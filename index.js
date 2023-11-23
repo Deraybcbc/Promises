@@ -12,8 +12,11 @@
         database: "a22kevburcac_Prueba"
     });
 
+    function delay(seconds) {
+        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    };
+
     function Select() {
-        var results = null;
         return new Promise((resolve, rejects) => {
             const sql = "SELECT P.idPre, P.pregunta, R.respuestas FROM PREGUNTAS P INNER JOIN RESPUESTAS R ON P.idPre =R.idRes";
             con.query(sql, function(error, select) {
@@ -23,12 +26,12 @@
                 } else {
                     //results = result
 
-                    resolve(select);
-                    setTimeout(function() {
 
+                    delay(4).then(() => {
                         console.log("FILTRO");
-                        console.log(select);
-                    }, 8000);
+                        resolve(select);
+                        //console.log(select);
+                    })
 
                     /*
                     //FechaHora("CONSULTA ECHA");
@@ -48,7 +51,6 @@
     };
 
     function SelectAll() {
-        var results = null;
         return new Promise((resolve, rejects) => {
             con.query("SELECT * FROM PREGUNTAS", function(error, select) {
                 if (error) {
@@ -56,16 +58,69 @@
                     rejects(error)
                 } else {
 
-                    resolve(select);
-                    setTimeout(function() {
-                        console.log("ALL Preguntas");
-                        console.log(select);
-                    }, 4000);
+                    delay(4).then(() => {
+                        console.log("ALL");
+                        resolve(select);
+                        //console.log(select);
+                    })
                 }
             });
         });
-        //results = await pro;
-        console.log(results);
+
+    };
+
+    function SelectID() {
+        return new Promise((resolve, rejects) => {
+            const sql = "SELECT * FROM PREGUNTAS WHERE idPre = 4"
+            con.query(sql, function(error, select) {
+                if (error) {
+                    rejects(error.message);
+                } else {
+
+                    delay(4).then(() => {
+                        console.log("FILTRO ID");
+                        resolve(select);
+                        //console.log(select);
+                    })
+                }
+            });
+        });
+    };
+
+    function SelectPre() {
+        return new Promise((resolve, rejects) => {
+            const sql = "SELECT P.pregunta,R.respuestas FROM RESPUESTAS R JOIN PREGUNTAS P ON R.idRes=P.idPre WHERE P.idPre=2";
+
+            con.query(sql, function(error, select) {
+                if (error) {
+                    rejects(error.message);
+                } else {
+
+                    delay(4).then(() => {
+                        console.log("FILTRO PREGUNTA");
+                        resolve(select);
+                        //console.log(select);
+                    })
+                }
+            });
+        });
+    };
+
+    function SelectPalabra() {
+        return new Promise((resolve, rejects) => {
+            const sql = "SELECT * FROM PREGUNTAS P JOIN RESPUESTAS R ON R.idRes=P.idPre WHERE P.idPre=2 LIKE '%España%' OR P.pregunta LIKE '%España%'";
+            con.query(sql, function(error, select) {
+                if (error) {
+                    rejects(error.message);
+                } else {
+                    delay(4).then(() => {
+                        console.log("FILTRO PALABRA");
+                        resolve(select);
+                        //console.log(select);
+                    })
+                }
+            })
+        })
     };
 
     function conexion() {
@@ -82,7 +137,7 @@
         })
     };
     /*
-    async function desconexion() {
+    function desconexion() {
         return new Promise((resolve, rejects) => {
             con.end(function(error) {
                 if (error) {
@@ -99,18 +154,41 @@
     };
     */
     async function listo() {
+        const inicio = performance.now();
         await conexion();
 
-        await Select();
+        const result1 = await Select();
+        console.log(result1);
 
-        await SelectAll();
+
+        const result2 = await SelectAll();
+        console.log(result2);
+
+
+        const result3 = await SelectID();
+        console.log(result3);
+
+
+        const result4 = await SelectPre();
+        console.log(result4);
+
+        const result5 = await SelectPalabra();
+        console.log(result5);
+
+        const fin = performance.now();
+        console.log(`La función listo tardó ${fin - inicio} milisegundos.`);
     };
 
     async function listo2() {
-        var t1 = performance.now;
-        Promise.allSettled([conexion(), Select(), SelectAll()]).then(response => console.log(response)).catch(error => console.log(error))
+
+        const inicio = performance.now();
+
+        Promise.allSettled([conexion(), Select(), SelectAll(), SelectID(), SelectPre(), SelectPalabra()]).then(response => console.log(response)).catch(error => console.log(error))
+        const fin = performance.now();
+
+        console.log(`La función listo2 tardó ${fin - inicio} milisegundos.`);
     };
 
-    //listo();
-
-    listo2();
+    listo().finally(() => {
+        listo2();
+    })
